@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:id="@+id/addRemoveTask">
+        <item
+            android:id="@+id/add_task"
+            android:title="Добавить задачу" />
+
+        <item
+            android:id="@+id/remove_task"
+            android:title="Удалить задачи" />
+    </group>
+    <group android:id="@+id/selectUnselectTask">
+        <item
+            android:id="@+id/select_all"
+            android:title="Выбрать все" />
+        <item
+            android:id="@+id/unselect_all"
+            android:title="Снять выделение" />
+    </group>
+    <item
+        android:id="@+id/notification_time"
+        android:title="Время уведомлений" />
+    <group android:id="@+id/additinal">
+        <item
+            android:title="Для разработчиков"
+            android:titleCondensed="111">
+            <menu>
+                <item
+                    android:id="@+id/mark_done"
+                    android:title="Очистить уведомления" />
+                <item
+                    android:id="@+id/check_now"
+                    android:title="Проверить сейчас" />
+                <item
+                    android:id="@+id/three_min_timer"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:title="Завести на 3 мин" />
+            </menu>
+        </item>
+    </group>
+    <item
+        android:id="@+id/about"
+        android:title="О программе" />
+</menu>
