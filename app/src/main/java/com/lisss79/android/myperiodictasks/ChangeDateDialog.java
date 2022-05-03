@@ -21,7 +21,7 @@ public class ChangeDateDialog extends DialogFragment implements DatePickerDialog
         // Create a new instance of DatePickerDialog with current date and return it.
         DatePickerDialog datePickerDialog =
                 new DatePickerDialog(getActivity(), this, year, month, day);
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 48 * 3600 * 1000);
         return datePickerDialog;
     }
 

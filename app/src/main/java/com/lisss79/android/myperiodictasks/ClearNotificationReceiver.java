@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -25,10 +26,23 @@ public class ClearNotificationReceiver extends BroadcastReceiver {
     int colorPrimary;
     private StatusBarNotification[] notifications;
     NotificationManager mNotifyManager;
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    boolean shiftDate = false; // сдвигать ли дату при подтверждении
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        //уточняем id и нужно ли сдвигать дату
         int NOTIFICATION_ID = intent.getIntExtra("NOTIFICATION_ID", 0);
+        //System.out.println(NOTIFICATION_ID);
+        if(NOTIFICATION_ID >= 100) {
+            shiftDate = true;
+            NOTIFICATION_ID -= 100;
+        }
+        else {
+            shiftDate = false;
+        }
+        //System.out.println(shiftDate);
+
         notification_hour = intent.getIntExtra("NOTIFICATION_HOUR", 14);
         colorPrimary = intent.getIntExtra("COLOR_PRIMARY",
                 Integer.parseInt("BB86FC", 16));
@@ -38,10 +52,9 @@ public class ClearNotificationReceiver extends BroadcastReceiver {
         LocalDate currDate = mDateList.get(NOTIFICATION_ID);
         Integer currPeriod = mPeriodList.get(NOTIFICATION_ID);
         Boolean currLengthPeriod = mLengthPeriodList.get(NOTIFICATION_ID);
-        LocalDate nextDate = lookForNextDate(currDate, currPeriod, currLengthPeriod); // следующая дата
+        LocalDate nextDate = lookForNextDate(currDate, currPeriod, currLengthPeriod, shiftDate); // следующая дата
+        String nextDateString = nextDate.format(formatter);
         mDateList.set(NOTIFICATION_ID, nextDate); // сохранить новую дату
-        //Log.w("StoringClass.mNotifyManager = ", String.valueOf(StoringClass.mNotifyManager));
-        //Log.w("DailyReceiver.kkk = ", String.valueOf(DailyReceiver.kkk));
 
         mNotifyManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notifications = mNotifyManager.getActiveNotifications();
@@ -50,19 +63,23 @@ public class ClearNotificationReceiver extends BroadcastReceiver {
         if (((MainActivity) MainActivity.context) != null) {
             ((MainActivity) MainActivity.context).recreate();
         } else {
+            Toast.makeText(context, "Новая дата задачи: " + nextDateString, Toast.LENGTH_LONG).show();
             loadAndSaveData.setDailyAlarm();
-            Toast.makeText(context, "Установлена новая дата задачи", Toast.LENGTH_SHORT).show();
         }
     }
 
     // задание выполнено, найти следующую дату уведомления
-    private LocalDate lookForNextDate(LocalDate currDate, Integer currPeriod, Boolean currLengthPeriod) {
-        LocalDate nextDate;
-        today = LocalDate.now();
+    private LocalDate lookForNextDate(LocalDate currDate, Integer currPeriod,
+                                      boolean currLengthPeriod, boolean shift) {
+        LocalDate nextDate, firstDate;
+
+        if(shift) firstDate = LocalDate.now();
+        else firstDate = currDate;
+
         if (currLengthPeriod) {
-            nextDate = today.plusMonths(currPeriod);
+            nextDate = firstDate.plusMonths(currPeriod);
         } else {
-            nextDate = today.plusDays(currPeriod);
+            nextDate = firstDate.plusDays(currPeriod);
         }
         return nextDate;
     }

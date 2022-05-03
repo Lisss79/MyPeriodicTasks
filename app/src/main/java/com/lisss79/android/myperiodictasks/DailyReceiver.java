@@ -141,28 +141,67 @@ public class DailyReceiver extends BroadcastReceiver {
         doneIntent.putExtra("NOTIFICATION_ID", NOTIFICATION_ID);
         doneIntent.putExtra("NOTIFICATION_HOUR", notification_hour);
         doneIntent.putExtra("COLOR_PRIMARY", colorPrimary);
-        PendingIntent donePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
-                doneIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Bitmap myLogo = BitmapFactory.decodeResource(context.getResources(), R.drawable.app_logo_jpg);
-        String text = (!outOfDate ? "Запланирована на сегодня!" : "Просрочена!");
         PendingIntent clickPendingIntent = PendingIntent.getActivity(context, 0,
                 new Intent(context, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent donePendingIntent;
+        String text;
+        NotificationCompat.Builder notifyBuilder;
 
-        NotificationCompat.Builder notifyBuilder =
-                new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID) //id канала
-                        .setContentTitle(currTask) // заголовок уведомления
-                        .setContentText(text) // текст уведомления
-                        .setSmallIcon(R.drawable.ic_task_notify) // иконка увдомления (обязательно)
-                        .setContentIntent(clickPendingIntent) // действие при нажатии
-                        .setAutoCancel(false) // закрывать после клика
-                        // большая картинка справа уведомления
-                        .setLargeIcon(myLogo)
-                        //.setDeleteIntent(deletePendingIntent); // действия после удаления пользователем
-                        .addAction(R.drawable.ic_dialog, context.getString(R.string.done), donePendingIntent)
-                        .setColor(colorPrimary)
-                        .setColorized(true)
-                        .setOngoing(false) // можно удалить смахиванием
-                        .setPriority(NotificationCompat.PRIORITY_HIGH);
+        Bitmap myLogo = BitmapFactory.decodeResource(context.getResources(), R.drawable.app_logo_jpg);
+
+        // если запланировано на сегодня, показать уведомление с одной кнопкой
+        if(!outOfDate) {
+            text = "Запланирована на сегодня!";
+            donePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
+                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            notifyBuilder =
+                    new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID) //id канала
+                            .setContentTitle(currTask) // заголовок уведомления
+                            .setContentText(text) // текст уведомления
+                            .setSmallIcon(R.drawable.ic_task_notify) // иконка увдомления (обязательно)
+                            .setContentIntent(clickPendingIntent) // действие при нажатии
+                            .setAutoCancel(false) // закрывать после клика
+                            // большая картинка справа уведомления
+                            .setLargeIcon(myLogo)
+                            //.setDeleteIntent(deletePendingIntent); // действия после удаления пользователем
+                            .addAction(R.drawable.ic_dialog, context.getString(R.string.done), donePendingIntent)
+                            .setColor(colorPrimary)
+                            .setColorized(true)
+                            .setOngoing(false) // можно удалить смахиванием
+                            .setPriority(NotificationCompat.PRIORITY_HIGH);
+        }
+
+        else {
+            // новый intent и pending intent для варианта сдвига даты
+            Intent doneShiftIntent = new Intent(context, ClearNotificationReceiver.class);
+            doneShiftIntent.putExtra("NOTIFICATION_ID", NOTIFICATION_ID + 100);
+            doneShiftIntent.putExtra("NOTIFICATION_HOUR", notification_hour);
+            doneShiftIntent.putExtra("COLOR_PRIMARY", colorPrimary);
+            PendingIntent doneShiftPendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID + 100,
+                    doneShiftIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            text = "Просрочена!" + System.lineSeparator() + "Выбрав \"" + context.getString(R.string.done) +
+            "\", вы назначите новую дату, отсчитанную от исходной. Выбрав \"" + context.getString(R.string.done_shift) +
+            "\" - от сегодняшнего дня.";
+            donePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
+                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            notifyBuilder =
+                    new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID) //id канала
+                            .setContentTitle(currTask) // заголовок уведомления
+
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                            .setSmallIcon(R.drawable.ic_task_notify) // иконка увдомления (обязательно)
+                            .setContentIntent(clickPendingIntent) // действие при нажатии
+                            .setAutoCancel(false) // закрывать после клика
+                            // большая картинка справа уведомления
+                            .setLargeIcon(myLogo)
+                            //.setDeleteIntent(deletePendingIntent); // действия после удаления пользователем
+                            .addAction(R.drawable.ic_dialog, context.getString(R.string.done), donePendingIntent)
+                            .addAction(R.drawable.ic_dialog, context.getString(R.string.done_shift), doneShiftPendingIntent)
+                            .setColor(colorPrimary)
+                            .setColorized(true)
+                            .setOngoing(false) // можно удалить смахиванием
+                            .setPriority(NotificationCompat.PRIORITY_HIGH);
+        }
         return notifyBuilder;
     }
 

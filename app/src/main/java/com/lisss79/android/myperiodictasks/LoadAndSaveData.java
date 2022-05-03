@@ -164,7 +164,7 @@ public class LoadAndSaveData {
         //alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmPendingIntent);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy в HH:mm");
         String dateTime = "Следующая проверка напоминаний: " + simpleDateFormat.format(calendar.getTime());
-        Toast.makeText(context, dateTime, Toast.LENGTH_LONG).show();
+        Toast.makeText(context, dateTime, Toast.LENGTH_SHORT).show();
         alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 calendar.getTimeInMillis(), interval, alarmPendingIntent);
     }
