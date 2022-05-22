@@ -48,6 +48,11 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.FileList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -59,8 +64,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 public class MainActivity extends AppCompatActivity {
@@ -97,6 +104,19 @@ public class MainActivity extends AppCompatActivity {
     private String ACTION_CHECK_TASKS; // значение action для локальной рассылки
     LoadAndSaveData loadAndSaveData; // класс с методами загрузки/сохранения
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); // формат даты для показа
+
+    // переменные для работы с гугл диском
+    Drive googleDriveService;
+    FileList fileList = null;
+    ActivityResultLauncher<Intent> googleLoginActivityLauncher;
+    ActivityResultLauncher<Intent> googleDriveFilesActivityLauncher;
+    GoogleSignInAccount account;
+    Collection<String> scopes;
+    GoogleDriveFilesActivity googleDriveFilesActivity;
+    GoogleDriveOperations googleDriveOperations;
+    int operation;
+    final int OPERATION_SAVE = 1;
+    final int OPERATION_LOAD = 2;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -150,6 +170,73 @@ public class MainActivity extends AppCompatActivity {
         modeAddNewTask = false;
 
         setDailyAlarm();
+
+        // лончер GoogleLoginActivity
+        googleLoginActivityLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    account = App.getInstance().getAccount();
+                    scopes = new HashSet<>();
+                    scopes.add(DriveScopes.DRIVE_READONLY);
+                    scopes.add(DriveScopes.DRIVE_FILE);
+                    App.getInstance().setScopes(scopes);
+                    Intent intent = new Intent(this, GoogleDriveFilesActivity.class);
+                    googleDriveFilesActivityLauncher.launch(intent);
+
+                }
+        );
+
+        // лончер GoogleDriveFilesActivity
+        googleDriveFilesActivityLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    googleDriveService = App.getInstance().getDrive();
+                    fileList = App.getInstance().getFileList();
+                    googleDriveFilesActivity = App.getInstance().getGoogleDriveFilesActivity();
+                    googleDriveOperations = new GoogleDriveOperations(googleDriveService, fileList, this);
+                    String fId = googleDriveOperations.createFolder("MyPeriodicTasks");
+                    String id = googleDriveOperations.getFileId("taskslist", "MyPeriodicTasks");
+                    System.out.println("Id файла taskslist: " + id);
+
+                    if(operation == OPERATION_SAVE) {
+                        if(id != null) {
+                            boolean res = googleDriveOperations.deleteFileId(id);
+                            if (!res) Toast.makeText(this,"Невозможно удалить старый файл taskslist",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        boolean res = googleDriveOperations.saveConfigFile(fId, String.valueOf(getFilesDir()));
+                        if (!res) Toast.makeText(this,"Невозможно сохранить taskslist",
+                                Toast.LENGTH_SHORT).show();
+                        else {
+                            Toast.makeText(this,"taskslist успешно сохранен",
+                                    Toast.LENGTH_SHORT).show();
+                            System.out.println("Number Of Tasks: " + mTasksList.size());
+                        }
+                    }
+
+                    else if(operation == OPERATION_LOAD) {
+                        if(id == null) {
+                            Toast.makeText(this,"Нет сохраненного файла",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            boolean res = googleDriveOperations.loadConfigFile(id, String.valueOf(getFilesDir()));
+                            if(!res) Toast.makeText(this,"Невозможно загрузить taskslist",
+                                    Toast.LENGTH_SHORT).show();
+                            else {
+                                Toast.makeText(this,"taskslist успешно загружен",
+                                        Toast.LENGTH_SHORT).show();
+                                //loadData();
+                                //mAdapter.notifyDataSetChanged();
+                                //checkForTasks();
+                                ((MainActivity) this).recreate();
+                                //setDailyAlarm();
+                                System.out.println("Number Of Tasks: " + mTasksList.size());
+                            }
+                        }
+                    }
+                }
+        );
 
         // контракт на запуск activity с деталями задачи
         detailsActivityResultLauncher = registerForActivityResult(
@@ -257,6 +344,12 @@ public class MainActivity extends AppCompatActivity {
             case R.id.notification_time: // настроить время уведомлений
                 adjustNotificationTime();
                 return true;
+            case R.id.saveConfig: // сохранить конфигурацию на гугл диск
+                saveConfig();
+                return true;
+            case R.id.loadConfig: // загрузить конфигурацию с гугл диска
+                loadConfig();
+                return true;
             case R.id.three_min_timer: // режим "3 минуты"
                 if(notification_hour < 100) {
                     notification_hour += 100;
@@ -291,6 +384,20 @@ public class MainActivity extends AppCompatActivity {
                 // ничего не выполнять
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    // сохранить конфигурацию
+    private void saveConfig() {
+        operation = OPERATION_SAVE;
+        Intent intent = new Intent(this, GoogleLoginActivity.class);
+        googleLoginActivityLauncher.launch(intent);
+    }
+
+    // сохранить конфигурацию
+    private void loadConfig() {
+        operation = OPERATION_LOAD;
+        Intent intent = new Intent(this, GoogleLoginActivity.class);
+        googleLoginActivityLauncher.launch(intent);
     }
 
     // меню - настроить время уведомлений о задачах
@@ -365,7 +472,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int id) {
                 // подтверждение
                 mAdapter.usualMode = true;
-                //mAdapter.notifyDataSetChanged();
                 int i = 0;
                 while (i < mTasksList.size()) {
                     mAdapter.notifyItemChanged(i);
