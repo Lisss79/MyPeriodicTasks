@@ -18,4 +18,9 @@
         <item name="cardBackgroundColor">?attr/colorButtonNormal</item>
         <item name="cardCornerRadius">10dp</item>
     </style>
+
+    <style name="ToolBar" parent="Theme.MyPeriodicTasks">
+        <item name="colorPrimary">@color/black</item>
+    </style>
+
 </resources>

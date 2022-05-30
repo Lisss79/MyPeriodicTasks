@@ -6,8 +6,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.view.menu.MenuView;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuCompat;
@@ -36,19 +39,25 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.service.notification.StatusBarNotification;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
@@ -91,8 +100,11 @@ public class MainActivity extends AppCompatActivity {
     private boolean currLengthPeriod;
     private boolean modeAddNewTask; // true при добавлении новой задачи
     private int position;
+    float previousState; // предыдущее значение высоты Appbar
     private TextView no_tasksTextView;
     private TextView currentHourTextView;
+    private TextView textViewInToolbar;
+    private ImageView iconImageView;
     private NumberPicker hourNumberPicker;
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel"; // ID канала уведомлений
     private NotificationManager mNotifyManager; // менеджер уведомлений
@@ -127,6 +139,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Установить размер раскрытия Collapsing Layout
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float spWidth = displayMetrics.widthPixels;
+        findViewById(R.id.main_appbar).setLayoutParams
+                (new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (spWidth / 2)));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppBarLayout appBarLayout = findViewById(R.id.main_appbar);
+        ImageView imageView = findViewById(R.id.main_backdrop);
+        imageView.setImageDrawable(null);
+        appBarLayout.setExpanded(false, false);
+
+        Handler picHandler = new Handler();
+        Runnable picRunnable = () -> {
+            //Log.i("Runnable","ran");
+            imageView.setImageDrawable(AppCompatResources.
+                    getDrawable(MainActivity.this, R.drawable.collapsing_pic));
+        };
+        picHandler.postDelayed(picRunnable, 1300);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -139,9 +179,10 @@ public class MainActivity extends AppCompatActivity {
         loadAndSaveData = new LoadAndSaveData(this, getFilesDir(),
                 notification_hour, colorPrimary);
 
-        // создать Toolbar
+        // создать Toolbar и настроить его поведение
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
+        prepareCollapsingLayout();
 
         no_tasksTextView = findViewById(R.id.no_tasks_textView);
         context = this;
@@ -266,6 +307,47 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         checkForTasks();
+    }
+
+    /**
+     * Создание анимации для исчезновения и появления текста и иконки в Toolbar
+     */
+    private void prepareCollapsingLayout() {
+        textViewInToolbar = findViewById(R.id.text_view_in_toolbar);
+        iconImageView = findViewById(R.id.icon_imageView);
+        int duration = 1000;
+        ObjectAnimator textAnimation = ObjectAnimator.ofFloat(textViewInToolbar, "alpha", 0f, 1f);
+        textAnimation.setDuration(duration);
+        ObjectAnimator iconAnimation = ObjectAnimator.ofFloat(iconImageView, "alpha", 0f, 1f);
+        iconAnimation.setDuration(duration);
+        AppBarLayout appBarLayout = findViewById(R.id.main_appbar);
+        previousState = appBarLayout.getTotalScrollRange();
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                float absOffset = Math.abs(verticalOffset);
+                float max = appBarLayout.getTotalScrollRange();
+                if(absOffset > previousState) {
+                    // сужение
+                    if(previousState < 1.05 * max / 2 && absOffset > 1.05 * max / 2) {
+                        iconAnimation.setFloatValues(0f, 1f);
+                        textAnimation.setFloatValues(0f, 1f);
+                        iconAnimation.start();
+                        textAnimation.start();
+                    }
+                }
+                else {
+                    // расширение
+                    if(previousState > 0.95 * max / 2 && absOffset < 0.95 * max / 2) {
+                        iconAnimation.setFloatValues(1f, 0f);
+                        textAnimation.setFloatValues(1f, 0f);
+                        iconAnimation.start();
+                        textAnimation.start();
+                    }
+                }
+                previousState = absOffset;
+            }
+        });
     }
 
     // отсортировать задачи по дате выполнения (венуть true, если были изменения)
