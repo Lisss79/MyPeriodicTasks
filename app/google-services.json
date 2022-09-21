@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "343421721675",
+    "project_id": "myperiodictasks",
+    "storage_bucket": "myperiodictasks.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343421721675:android:a4bd2eda462f382e59c1ce",
+        "android_client_info": {
+          "package_name": "com.lisss79.android.myperiodictasks"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343421721675-2cnhortau4a0bmg34sb4u07io75u58bs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lisss79.android.myperiodictasks",
+            "certificate_hash": "57e1fd3bb740889466f8eefb7f66a96297d794e1"
+          }
+        },
+        {
+          "client_id": "343421721675-pvnpm7ehimsk1ki15mctr3fugaorii75.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrSgMinl8TLVR2-Lvy9rkHqm5SyHdAVDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343421721675-pvnpm7ehimsk1ki15mctr3fugaorii75.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

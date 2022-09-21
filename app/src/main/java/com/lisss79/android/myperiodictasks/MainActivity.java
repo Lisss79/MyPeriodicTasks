@@ -58,6 +58,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
@@ -153,17 +154,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         AppBarLayout appBarLayout = findViewById(R.id.main_appbar);
-        ImageView imageView = findViewById(R.id.main_backdrop);
-        imageView.setImageDrawable(null);
+        CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.main_collapsing);
+        collapsingToolbarLayout.setScrimAnimationDuration(0);
         appBarLayout.setExpanded(false, false);
 
         Handler picHandler = new Handler();
         Runnable picRunnable = () -> {
-            //Log.i("Runnable","ran");
-            imageView.setImageDrawable(AppCompatResources.
-                    getDrawable(MainActivity.this, R.drawable.collapsing_pic));
+            collapsingToolbarLayout.setScrimAnimationDuration(500);
         };
-        picHandler.postDelayed(picRunnable, 1300);
+        picHandler.postDelayed(picRunnable, 1000);
+
     }
 
     @Override
