@@ -122,11 +122,11 @@ public class LoadAndSaveData {
         Intent alarmIntent = new Intent(context, DailyReceiver.class); // класс приемника рассылки
         alarmIntent = putExtraInIntent(alarmIntent);
         PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, 0,
-                alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
         boolean isAlarmActive = PendingIntent.getBroadcast(context, 0,
-                alarmIntent, PendingIntent.FLAG_NO_CREATE) != null;
+                alarmIntent, PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE) != null;
 
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         Calendar calendar = Calendar.getInstance();
         int second = calendar.get(Calendar.SECOND);

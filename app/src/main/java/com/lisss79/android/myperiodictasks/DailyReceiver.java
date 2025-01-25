@@ -142,7 +142,7 @@ public class DailyReceiver extends BroadcastReceiver {
         doneIntent.putExtra("NOTIFICATION_HOUR", notification_hour);
         doneIntent.putExtra("COLOR_PRIMARY", colorPrimary);
         PendingIntent clickPendingIntent = PendingIntent.getActivity(context, 0,
-                new Intent(context, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                new Intent(context, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         PendingIntent donePendingIntent;
         String text;
         NotificationCompat.Builder notifyBuilder;
@@ -153,7 +153,7 @@ public class DailyReceiver extends BroadcastReceiver {
         if(!outOfDate) {
             text = "Запланирована на сегодня!";
             donePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
-                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             notifyBuilder =
                     new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID) //id канала
                             .setContentTitle(currTask) // заголовок уведомления
@@ -178,12 +178,12 @@ public class DailyReceiver extends BroadcastReceiver {
             doneShiftIntent.putExtra("NOTIFICATION_HOUR", notification_hour);
             doneShiftIntent.putExtra("COLOR_PRIMARY", colorPrimary);
             PendingIntent doneShiftPendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID + 100,
-                    doneShiftIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    doneShiftIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             text = "Просрочена!" + System.lineSeparator() + "Выбрав \"" + context.getString(R.string.done) +
             "\", вы назначите новую дату, отсчитанную от исходной. Выбрав \"" + context.getString(R.string.done_shift) +
             "\" - от сегодняшнего дня.";
             donePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
-                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    doneIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             notifyBuilder =
                     new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID) //id канала
                             .setContentTitle(currTask) // заголовок уведомления
