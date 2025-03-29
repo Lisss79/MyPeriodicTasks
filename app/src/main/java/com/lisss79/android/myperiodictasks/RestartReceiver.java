@@ -3,10 +3,7 @@ package com.lisss79.android.myperiodictasks;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.TypedArray;
-import android.util.Log;
 import android.util.TypedValue;
-import android.widget.Toast;
 
 public class RestartReceiver extends BroadcastReceiver {
     LoadAndSaveData loadAndSaveData; // класс с методами загрузки/сохранения
