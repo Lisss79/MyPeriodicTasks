@@ -1,13 +1,6 @@
 package com.lisss79.android.myperiodictasks;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentManager;
-
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,6 +10,12 @@ import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,6 +42,24 @@ public class DetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.details_root_view),
+                (view, insets) -> {
+                    // Получаем размеры системных панелей
+                    int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                    int navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+                    // Применяем padding к корневому View
+                    view.setPadding(
+                            view.getPaddingLeft(),
+                            statusBarHeight,    // Отступ сверху = статус-бар
+                            view.getPaddingRight(),
+                            navigationBarHeight // Отступ снизу = навигационная панель
+                    );
+
+                    // Возвращаем consumed insets для дочерних View
+                    return WindowInsetsCompat.CONSUMED;
+                });
 
         Toolbar toolbar = findViewById(R.id.details_toolbar);
         setSupportActionBar(toolbar);

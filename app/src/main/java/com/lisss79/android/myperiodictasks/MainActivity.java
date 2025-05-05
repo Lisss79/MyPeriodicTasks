@@ -31,6 +31,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.MenuCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         MenuCompat.setGroupDividerEnabled(menu, true);
-        if(notification_hour > 100) menu.findItem(R.id.three_min_timer).setChecked(true);
+        if (notification_hour > 100) menu.findItem(R.id.three_min_timer).setChecked(true);
         return true;
     }
 
@@ -140,6 +142,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root_view),
+                (view, insets) -> {
+                        // Получаем размеры системных панелей
+                        int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                        int navigationBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+                        // Применяем padding к корневому View
+                        view.setPadding(
+                                view.getPaddingLeft(),
+                                statusBarHeight,    // Отступ сверху = статус-бар
+                                view.getPaddingRight(),
+                                navigationBarHeight // Отступ снизу = навигационная панель
+                        );
+
+                        // Возвращаем consumed insets для дочерних View
+                        return WindowInsetsCompat.CONSUMED;
+                    });
+
         TypedValue typedValue = new TypedValue();
         getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
         colorPrimary = typedValue.data;
@@ -157,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         context = this;
 
         loadData(); // загрузить сохраненные данные из памяти телефона
-        if(sortData()) saveData(); // отсортировать и сохранить если нужно
+        if (sortData()) saveData(); // отсортировать и сохранить если нужно
 
         // зарегистрировать приемник для локальной рассылки
         DailyReceiver mReceiver = new DailyReceiver();
@@ -208,33 +228,31 @@ public class MainActivity extends AppCompatActivity {
                     String id = googleDriveOperations.getFileId("taskslist", "MyPeriodicTasks");
                     System.out.println("Id файла taskslist: " + id);
 
-                    if(operation == OPERATION_SAVE) {
-                        if(id != null) {
+                    if (operation == OPERATION_SAVE) {
+                        if (id != null) {
                             boolean res = googleDriveOperations.deleteFileId(id);
-                            if (!res) Toast.makeText(this,"Невозможно удалить старый файл taskslist",
-                                    Toast.LENGTH_SHORT).show();
+                            if (!res)
+                                Toast.makeText(this, "Невозможно удалить старый файл taskslist",
+                                        Toast.LENGTH_SHORT).show();
                         }
                         boolean res = googleDriveOperations.saveConfigFile(fId, String.valueOf(getFilesDir()));
-                        if (!res) Toast.makeText(this,"Невозможно сохранить taskslist",
+                        if (!res) Toast.makeText(this, "Невозможно сохранить taskslist",
                                 Toast.LENGTH_SHORT).show();
                         else {
-                            Toast.makeText(this,"taskslist успешно сохранен",
+                            Toast.makeText(this, "taskslist успешно сохранен",
                                     Toast.LENGTH_SHORT).show();
                             System.out.println("Number Of Tasks: " + mTasksList.size());
                         }
-                    }
-
-                    else if(operation == OPERATION_LOAD) {
-                        if(id == null) {
-                            Toast.makeText(this,"Нет сохраненного файла",
+                    } else if (operation == OPERATION_LOAD) {
+                        if (id == null) {
+                            Toast.makeText(this, "Нет сохраненного файла",
                                     Toast.LENGTH_SHORT).show();
-                        }
-                        else {
+                        } else {
                             boolean res = googleDriveOperations.loadConfigFile(id, String.valueOf(getFilesDir()));
-                            if(!res) Toast.makeText(this,"Невозможно загрузить taskslist",
+                            if (!res) Toast.makeText(this, "Невозможно загрузить taskslist",
                                     Toast.LENGTH_SHORT).show();
                             else {
-                                Toast.makeText(this,"taskslist успешно загружен",
+                                Toast.makeText(this, "taskslist успешно загружен",
                                         Toast.LENGTH_SHORT).show();
                                 //loadData();
                                 //mAdapter.notifyDataSetChanged();
@@ -270,8 +288,7 @@ public class MainActivity extends AppCompatActivity {
                             mAdapter.notifyDataSetChanged();
                             saveData();
                             setDailyAlarm();
-                        }
-                        else {
+                        } else {
                         }
                     }
                 });
@@ -296,18 +313,17 @@ public class MainActivity extends AppCompatActivity {
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
                 float absOffset = Math.abs(verticalOffset);
                 float max = appBarLayout.getTotalScrollRange();
-                if(absOffset > previousState) {
+                if (absOffset > previousState) {
                     // сужение
-                    if(previousState < 1.05 * max / 2 && absOffset > 1.05 * max / 2) {
+                    if (previousState < 1.05 * max / 2 && absOffset > 1.05 * max / 2) {
                         iconAnimation.setFloatValues(0f, 1f);
                         textAnimation.setFloatValues(0f, 1f);
                         iconAnimation.start();
                         textAnimation.start();
                     }
-                }
-                else {
+                } else {
                     // расширение
-                    if(previousState > 0.95 * max / 2 && absOffset < 0.95 * max / 2) {
+                    if (previousState > 0.95 * max / 2 && absOffset < 0.95 * max / 2) {
                         iconAnimation.setFloatValues(1f, 0f);
                         textAnimation.setFloatValues(1f, 0f);
                         iconAnimation.start();
@@ -324,15 +340,15 @@ public class MainActivity extends AppCompatActivity {
         boolean isChanged = false;
         LocalDate date1, date2;
         boolean isActive1, isActive2;
-        for(int i = 0; i < mTasksList.size(); i++) {
-            for(int j = i; j < mTasksList.size(); j++) {
+        for (int i = 0; i < mTasksList.size(); i++) {
+            for (int j = i; j < mTasksList.size(); j++) {
                 date1 = mDateList.get(i);
                 date2 = mDateList.get(j);
                 isActive1 = isActive.get(i);
                 isActive2 = isActive.get(j);
-                if((isActive1 && isActive2 && date1.isAfter(date2)) ||
+                if ((isActive1 && isActive2 && date1.isAfter(date2)) ||
                         (!isActive1 && isActive2) ||
-                        (!isActive1 && !isActive2 && date1.isAfter(date2))){
+                        (!isActive1 && !isActive2 && date1.isAfter(date2))) {
                     isChanged = true;
                     Collections.swap(mTasksList, i, j);
                     Collections.swap(mDateList, i, j);
@@ -357,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
     // обновить данные в ArrayList
     private void refreshData(boolean mode) {
         // редактирование сеществующей задачи
-        if(!mode) {
+        if (!mode) {
             mTasksList.set(position, currName);
             mDateList.set(position, currDate);
             mPeriodList.set(position, currPeriod);
@@ -384,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.remove_task: // удаление выбранных элементов
                 boolean res = checkForActiveNotifications();
-                if(!res) removeTaskFromList();
+                if (!res) removeTaskFromList();
                 return true;
             case R.id.select_all: // выбор всех элементов
                 selectAll();
@@ -402,14 +418,13 @@ public class MainActivity extends AppCompatActivity {
                 loadConfig();
                 return true;
             case R.id.three_min_timer: // режим "3 минуты"
-                if(notification_hour < 100) {
+                if (notification_hour < 100) {
                     notification_hour += 100;
                     item.setChecked(true);
                     saveData();
                     setDailyAlarm();
                     Toast.makeText(this, "Режим 3 минуты активен", Toast.LENGTH_SHORT).show();
-                }
-                else {
+                } else {
                     notification_hour -= 100;
                     item.setChecked(false);
                     saveData();
@@ -481,13 +496,13 @@ public class MainActivity extends AppCompatActivity {
         builder.setMessage("(Текущее значение: " + notification_hour + "ч)");
         builder.setView(dialogView);
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                notification_hour = hourNumberPicker.getValue();
-                saveData();
-                loadAndSaveData.setDailyAlarm();
-            }
-        })
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        notification_hour = hourNumberPicker.getValue();
+                        saveData();
+                        loadAndSaveData.setDailyAlarm();
+                    }
+                })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -570,7 +585,7 @@ public class MainActivity extends AppCompatActivity {
     // меню - добавление задачи
     private void addTaskToList(int pos) {
         boolean res = checkForActiveNotifications();
-        if(!res) {
+        if (!res) {
             modeAddNewTask = true;
             addTask(pos);
             //checkForTasks();
@@ -583,9 +598,9 @@ public class MainActivity extends AppCompatActivity {
     public void showDetails(int position, boolean mode) {
         modeAddNewTask = mode;
         boolean res = checkForActiveNotifications();
-        if(!res) {
+        if (!res) {
             // редактирование имеющейся задачи
-            if(!mode) {
+            if (!mode) {
                 LocalDate localDate = mDateList.get(position);
                 Intent intent = new Intent(this, DetailsActivity.class);
                 intent.putExtra(mName, mTasksList.get(position));
@@ -681,8 +696,8 @@ public class MainActivity extends AppCompatActivity {
         boolean activeNotifications = false;
         mNotifyManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notifications = mNotifyManager.getActiveNotifications();
-        for(int i = 0; i < notifications.length; i++) {
-            if(getPackageName().equals(notifications[i].getPackageName())) {
+        for (int i = 0; i < notifications.length; i++) {
+            if (getPackageName().equals(notifications[i].getPackageName())) {
                 activeNotifications = true;
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Прежде чем редактировать список, " +
