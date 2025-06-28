@@ -8,4 +8,11 @@
     <string name="done_shift">Выполнено, сдвинуть дату</string>
     <string name="about_text">Программа разработана для периодических напоминаний о разных задачах. Для ее корректной работы на телефонах Huawei, Honor, Xiaomi и возможно каких-то еще необходимо разрешить автозапуск приложения в настройках андроида.</string>
     <string name="app_full_title">Мои периодические задачи v1.3</string>
+    <string-array name="change_time_array">
+        <item>не переносить</item>
+        <item>ближайшую субботу</item>
+        <item>ближайшее воскресенье</item>
+        <item>неделю</item>
+        <item>завтра</item>
+    </string-array>
 </resources>

@@ -5,14 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.service.notification.StatusBarNotification;
-import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class ClearNotificationReceiver extends BroadcastReceiver {
     public ArrayList<String> mTasksList = new ArrayList<>();// название задачи
@@ -41,7 +38,6 @@ public class ClearNotificationReceiver extends BroadcastReceiver {
         else {
             shiftDate = false;
         }
-        //System.out.println(shiftDate);
 
         notification_hour = intent.getIntExtra("NOTIFICATION_HOUR", 14);
         colorPrimary = intent.getIntExtra("COLOR_PRIMARY",
@@ -60,9 +56,9 @@ public class ClearNotificationReceiver extends BroadcastReceiver {
         notifications = mNotifyManager.getActiveNotifications();
         mNotifyManager.cancel(NOTIFICATION_ID);
         saveData(); // сохранить данные
-        if (((MainActivity) MainActivity.context) != null) {
-            ((MainActivity) MainActivity.context).recreate();
-        } else {
+        MainActivity mainActivity = App.getInstance().getMainActivity();
+        if (mainActivity != null) mainActivity.recreate();
+        else {
             Toast.makeText(context, "Новая дата задачи: " + nextDateString, Toast.LENGTH_LONG).show();
             loadAndSaveData.setDailyAlarm();
         }

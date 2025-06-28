@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int NOTIFICATION_ID = 0; // ID уведомлений
     private int colorPrimary; // цвет Color Primary
     private int notification_hour = 14; // час выдачи уведомлений о задачах, если >100, включен режим "3 мин"
-    static Context context;
     private String ACTION_CHECK_TASKS; // значение action для локальной рассылки
     LoadAndSaveData loadAndSaveData; // класс с методами загрузки/сохранения
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); // формат даты для показа
@@ -141,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        App.getInstance().setMainActivity(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root_view),
                 (view, insets) -> {
@@ -174,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
         prepareCollapsingLayout();
 
         no_tasksTextView = findViewById(R.id.no_tasks_textView);
-        context = this;
 
         loadData(); // загрузить сохраненные данные из памяти телефона
         if (sortData()) saveData(); // отсортировать и сохранить если нужно
@@ -443,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(alarmIntent);
                 return true;
             case R.id.mark_done: // сбросить уведомления
-                mNotifyManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotifyManager.cancelAll();
                 return true;
             default:
@@ -694,7 +693,7 @@ public class MainActivity extends AppCompatActivity {
     // проверка наличия активных уведомлений от приложения
     public boolean checkForActiveNotifications() {
         boolean activeNotifications = false;
-        mNotifyManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notifications = mNotifyManager.getActiveNotifications();
         for (int i = 0; i < notifications.length; i++) {
             if (getPackageName().equals(notifications[i].getPackageName())) {

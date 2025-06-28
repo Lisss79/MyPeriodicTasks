@@ -1,17 +1,17 @@
 package com.lisss79.android.myperiodictasks;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -61,7 +61,7 @@ public class GoogleDriveFilesActivity extends AppCompatActivity {
                 }
         );
 
-        account = App.instance.getAccount();
+        account = App.getInstance().getAccount();
         scopes = App.getInstance().getScopes();
         System.out.println("Account got: " + account);
         googleDriveService = getDriveService(account, scopes);

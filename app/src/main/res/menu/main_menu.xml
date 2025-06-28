@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:id="@+id/addRemoveTask">
         <item
@@ -22,6 +21,9 @@
     <item
         android:id="@+id/notification_time"
         android:title="Время уведомлений" />
+    <item
+        android:id="@+id/check_now"
+        android:title="Проверить сейчас" />
     <group android:id="@+id/config">
         <item
             android:id="@+id/saveConfig"
@@ -38,9 +40,6 @@
                 <item
                     android:id="@+id/mark_done"
                     android:title="Очистить уведомления" />
-                <item
-                    android:id="@+id/check_now"
-                    android:title="Проверить сейчас" />
                 <item
                     android:id="@+id/three_min_timer"
                     android:checkable="true"

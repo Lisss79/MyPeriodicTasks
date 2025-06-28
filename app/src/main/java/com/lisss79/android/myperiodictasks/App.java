@@ -6,16 +6,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.FileList;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 
 public class App extends Application {
 
-    public static App instance;
+    private static App instance;
     private Drive drive;
     private FileList fileList;
     private GoogleSignInAccount account;
     private Collection<String> scopes;
     private GoogleDriveFilesActivity googleDriveFilesActivity;
+    private WeakReference<MainActivity> mainActivity;
 
     @Override
     public void onCreate() {
@@ -67,4 +69,11 @@ public class App extends Application {
         this.googleDriveFilesActivity = googleDriveFilesActivity;
     }
 
+    public MainActivity getMainActivity() {
+        return mainActivity.get();
+    }
+
+    public void setMainActivity(MainActivity mainActivity) {
+        this.mainActivity = new WeakReference<>(mainActivity);
+    }
 }

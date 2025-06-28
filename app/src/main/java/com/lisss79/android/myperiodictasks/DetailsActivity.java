@@ -1,14 +1,19 @@
 package com.lisss79.android.myperiodictasks;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -17,8 +22,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 
 public class DetailsActivity extends AppCompatActivity {
     private final String mName = "NAME_OF_TASK";
@@ -27,15 +34,17 @@ public class DetailsActivity extends AppCompatActivity {
     private final String mDateDay = "DATE_DAY_OF_TASK";
     private final String mPeriod = "PERIOD_OF_TASK";
     private final String mLengthPeriod = "LENGTH_PERIOD_OF_TASK";
+    private final String mNotificationId = "NOTIFICATION_ID";
     private LocalDate currDate;
     private String currName;
-    private int currYear, currMonth, currDay, currPeriod;
+    private int currYear, currMonth, currDay, currPeriod, NOTIFICATION_ID;
     private boolean currLengthPeriod;
+    private LocalDate originalDate;
     private TextView detNameTextView, detDateTextView, detPeriodTextView, detLengthPeriodTextView;
     private EditText nameEditText;
     private NumberPicker periodNumberPicker;
     private RadioButton monthRadioButton, dayRadioButton;
-    DateTimeFormatter formatter; // формат даты для показа
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); // формат даты для показа
 
     @SuppressLint("NewApi")
     @Override
@@ -69,10 +78,6 @@ public class DetailsActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        if(((MainActivity) MainActivity.context) !=null) {
-            formatter = ((MainActivity) MainActivity.context).formatter;
-        }
-
         currName = intent.getStringExtra(mName);
         detNameTextView = findViewById(R.id.det_name_textView);
 
@@ -80,6 +85,8 @@ public class DetailsActivity extends AppCompatActivity {
         currYear = intent.getIntExtra(mDateYear, 0);
         currMonth = intent.getIntExtra(mDateMonth, 0);
         currDay = intent.getIntExtra(mDateDay, 0);
+        originalDate = LocalDate.of(currYear, currMonth, currDay);
+        currDate = originalDate;
         detDateTextView = findViewById(R.id.det_date_textView);
 
         currPeriod = intent.getIntExtra(mPeriod, 0);
@@ -88,8 +95,55 @@ public class DetailsActivity extends AppCompatActivity {
         currLengthPeriod = intent.getBooleanExtra(mLengthPeriod, true);
         detLengthPeriodTextView = findViewById(R.id.det_length_period_textView);
 
-        refreshView();
+        NOTIFICATION_ID = intent.getIntExtra(mNotificationId, -1);
 
+        installSpinner();
+        refreshView();
+    }
+
+    private void installSpinner() {
+        Spinner spinner = findViewById(R.id.change_time_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.change_time_array,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0: {
+                        currDate = originalDate;
+                        break;
+                    }
+                    case 1: {
+                        currDate = originalDate.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+                        break;
+                    }
+                    case 2: {
+                        currDate = originalDate.with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
+                        break;
+                    }
+                    case 3: {
+                        currDate = originalDate.plusDays(7);
+                        break;
+                    }
+                    case 4: {
+                        currDate = originalDate.plusDays(1);
+                        break;
+                    }
+                }
+                currYear = currDate.getYear();
+                currMonth = currDate.getMonthValue();
+                currDay = currDate.getDayOfMonth();
+                refreshView();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     private View.OnClickListener listenerNavButton = new View.OnClickListener() {
@@ -101,6 +155,10 @@ public class DetailsActivity extends AppCompatActivity {
 
     // подтверждение - нажата ОК
     public void onClickOK(View view) {
+        NotificationManager  mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (NOTIFICATION_ID > -1) mNotifyManager.cancel(NOTIFICATION_ID);
+
+
         Intent replyIntent = new Intent();
 
         replyIntent.putExtra(mName, currName);

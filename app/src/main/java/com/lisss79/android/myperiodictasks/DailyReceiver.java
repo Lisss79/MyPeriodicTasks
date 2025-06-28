@@ -10,27 +10,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.RingtoneManager;
-import android.os.Parcelable;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 public class DailyReceiver extends BroadcastReceiver {
     private ArrayList<String> mTasksList;// название задачи
     private ArrayList<LocalDate> mDateList; // ближайшая дата
-    //private ArrayList<Integer> mPeriodList; // период между уведомлениями
-    //private ArrayList<Boolean> mLengthPeriodList; // true - месяцев, false - дней
+    private ArrayList<Integer> mPeriodList; // период между уведомлениями
+    private ArrayList<Boolean> mLengthPeriodList; // true - месяцев, false - дней
     private ArrayList<Boolean> isActive;
 
     private int notification_hour;
@@ -43,6 +33,14 @@ public class DailyReceiver extends BroadcastReceiver {
     private int NOTIFICATION_ID; // ID уведомлений
     private Context context;
     private int colorPrimary;
+
+    private final String mName = "NAME_OF_TASK";
+    private final String mDateYear = "DATE_YEAR__OF_TASK";
+    private final String mDateMonth = "DATE_MONTH_OF_TASK";
+    private final String mDateDay = "DATE_DAY_OF_TASK";
+    private final String mPeriod = "PERIOD_OF_TASK";
+    private final String mLengthPeriod = "LENGTH_PERIOD_OF_TASK";
+    private final String mNotificationId = "NOTIFICATION_ID";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -112,8 +110,8 @@ public class DailyReceiver extends BroadcastReceiver {
     private void getDataFromIntent(Intent intent) {
         mTasksList = (ArrayList<String>) intent.getSerializableExtra("TASKS_LIST");
         mDateList = (ArrayList<LocalDate>) intent.getSerializableExtra("DATE_LIST");
-        //mPeriodList = (ArrayList<Integer>) intent.getSerializableExtra("PERIOD_LIST");
-        //mLengthPeriodList = (ArrayList<Boolean>) intent.getSerializableExtra("LENGTH_PERIOD_LIST");
+        mPeriodList = (ArrayList<Integer>) intent.getSerializableExtra("PERIOD_LIST");
+        mLengthPeriodList = (ArrayList<Boolean>) intent.getSerializableExtra("LENGTH_PERIOD_LIST");
         isActive = (ArrayList<Boolean>) intent.getSerializableExtra("IS_ACTIVE");
         notification_hour = intent.getIntExtra("NOTIFICATION_HOUR" ,-1);
         colorPrimary = intent.getIntExtra("COLOR_PRIMARY", -1);
@@ -135,6 +133,18 @@ public class DailyReceiver extends BroadcastReceiver {
 
     // создать builder уведомлений
     private NotificationCompat.Builder getNotificationBuilder(int NOTIFICATION_ID, String currTask, boolean outOfDate) {
+
+        LocalDate localDate = mDateList.get(NOTIFICATION_ID);
+        Intent clickIntent = new Intent(context, DetailsActivity.class);
+        clickIntent.putExtra(mName, mTasksList.get(NOTIFICATION_ID));
+        clickIntent.putExtra(mDateYear, localDate.getYear());
+        clickIntent.putExtra(mDateMonth, localDate.getMonthValue());
+        clickIntent.putExtra(mDateDay, localDate.getDayOfMonth());
+        clickIntent.putExtra(mPeriod, mPeriodList.get(NOTIFICATION_ID));
+        clickIntent.putExtra(mLengthPeriod, mLengthPeriodList.get(NOTIFICATION_ID));
+        clickIntent.putExtra(mNotificationId, NOTIFICATION_ID);
+        PendingIntent clickPendingIntent2 = PendingIntent.getActivity(context, 0,
+                clickIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // создание intent'а для кнопки "отметить выполненным"
         Intent doneIntent = new Intent(context, ClearNotificationReceiver.class);
@@ -159,7 +169,7 @@ public class DailyReceiver extends BroadcastReceiver {
                             .setContentTitle(currTask) // заголовок уведомления
                             .setContentText(text) // текст уведомления
                             .setSmallIcon(R.drawable.ic_task_notify) // иконка увдомления (обязательно)
-                            .setContentIntent(clickPendingIntent) // действие при нажатии
+                            .setContentIntent(clickPendingIntent2) // действие при нажатии
                             .setAutoCancel(false) // закрывать после клика
                             // большая картинка справа уведомления
                             .setLargeIcon(myLogo)
